@@ -1,0 +1,12 @@
+echo "__pycache__/
+*.pyc
+*.pyo
+*.pyd
+dist/
+build/
+*.spec
+*.db
+*.sqlite
+*.exe
+*.lic
+*.log" > .gitignore
