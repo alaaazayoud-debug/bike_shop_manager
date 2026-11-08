@@ -16,12 +16,17 @@ class InvoiceHistoryPage(QWidget):
         self.btn_refresh = QPushButton("تحديث")
         self.btn_refresh.clicked.connect(self.load_invoices)
         
-        self.btn_delete = QPushButton("حذف الفاتورة المحددة")
-        self.btn_delete.setStyleSheet("background-color: #c0392b; color: white; font-weight: bold;")
-        self.btn_delete.clicked.connect(self.delete_selected_invoice)
+        self.btn_revert = QPushButton("استرجاع (حذف + مخزون)")
+        self.btn_revert.setStyleSheet("background-color: #e67e22; color: white; font-weight: bold;")
+        self.btn_revert.clicked.connect(self.revert_invoice)
+
+        self.btn_archive = QPushButton("أرشفة (حذف من السجل فقط)")
+        self.btn_archive.setStyleSheet("background-color: #c0392b; color: white; font-weight: bold;")
+        self.btn_archive.clicked.connect(self.archive_invoice)
         
         header_layout.addWidget(self.btn_refresh)
-        header_layout.addWidget(self.btn_delete)
+        header_layout.addWidget(self.btn_revert)
+        header_layout.addWidget(self.btn_archive)
         header_layout.addStretch()
         self.layout.addLayout(header_layout)
         
@@ -108,18 +113,18 @@ class InvoiceHistoryPage(QWidget):
         
         dialog.exec_()
 
-    def delete_selected_invoice(self):
+    def revert_invoice(self):
         selected_items = self.table.selectedItems()
         if not selected_items:
-            QMessageBox.warning(self, "تنبيه", "يرجى تحديد فاتورة للحذف.")
+            QMessageBox.warning(self, "تنبيه", "يرجى تحديد فاتورة للاسترجاع.")
             return
             
         row = selected_items[0].row()
         invoice_id = int(self.table.item(row, 0).text())
         
         confirm = QMessageBox.question(
-            self, "تأكيد الحذف", 
-            "هل أنت متأكد من حذف هذه الفاتورة؟\nسيتم استرجاع الكميات للمخزون وتعديل حساب الزبون.",
+            self, "تأكيد الاسترجاع", 
+            "هل أنت متأكد من استرجاع الفاتورة؟\nسيتم إعادة الكميات للمخزون وإلغاء الدين (إن وجد).",
             QMessageBox.Yes | QMessageBox.No
         )
         
@@ -145,11 +150,45 @@ class InvoiceHistoryPage(QWidget):
             conn.execute("DELETE FROM invoices WHERE id = ?", (invoice_id,))
             
             conn.commit()
-            QMessageBox.information(self, "نجاح", "تم حذف الفاتورة واسترجاع المخزون بنجاح.")
+            QMessageBox.information(self, "نجاح", "تم استرجاع الفاتورة للمخزون بنجاح.")
             self.load_invoices()
             
         except Exception as e:
             conn.rollback()
-            QMessageBox.critical(self, "خطأ", f"حدث خطأ أثناء الحذف: {e}")
+            QMessageBox.critical(self, "خطأ", f"حدث خطأ أثناء الاسترجاع: {e}")
+        finally:
+            conn.close()
+
+    def archive_invoice(self):
+        selected_items = self.table.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, "تنبيه", "يرجى تحديد فاتورة للأرشفة.")
+            return
+            
+        row = selected_items[0].row()
+        invoice_id = int(self.table.item(row, 0).text())
+        
+        confirm = QMessageBox.question(
+            self, "تأكيد الأرشفة (الحذف)", 
+            "هل أنت متأكد من حذف الفاتورة من السجل؟\n\nتنبيه: لن يتم استرجاع الكميات للمخزون ولن يتم تعديل ديون الزبون.\nاستخدم هذا الخيار فقط لتنظيف السجل.",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if confirm != QMessageBox.Yes:
+            return
+
+        conn = get_db_connection()
+        try:
+            # Just Delete Record
+            conn.execute("DELETE FROM invoice_items WHERE invoice_id = ?", (invoice_id,))
+            conn.execute("DELETE FROM invoices WHERE id = ?", (invoice_id,))
+            
+            conn.commit()
+            QMessageBox.information(self, "نجاح", "تم حذف الفاتورة من السجل بنجاح.")
+            self.load_invoices()
+            
+        except Exception as e:
+            conn.rollback()
+            QMessageBox.critical(self, "خطأ", f"حدث خطأ أثناء الأرشفة: {e}")
         finally:
             conn.close()

@@ -1,7 +1,19 @@
 import sqlite3
 import os
+import sys
 
-DB_NAME = "bike_shop.db"
+def get_db_path():
+    if getattr(sys, 'frozen', False):
+        # If the application is run as a bundle, the PyInstaller bootloader
+        # extends the sys module by a flag frozen=True and sets the app 
+        # path into variable _MEIPASS'.
+        application_path = os.path.dirname(sys.executable)
+    else:
+        application_path = os.path.dirname(os.path.abspath(__file__))
+    
+    return os.path.join(application_path, 'bike_shop.db')
+
+DB_NAME = get_db_path()
 
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)

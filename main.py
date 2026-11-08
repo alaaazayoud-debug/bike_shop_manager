@@ -35,9 +35,9 @@ class ActivationDialog(QDialog):
         self.setWindowTitle("تفعيل البرنامج")
         self.setFixedSize(400, 250)
         self.setStyleSheet("""
-            QDialog { background-color: #252526; color: white; }
-            QLabel { color: white; font-size: 14px; }
-            QLineEdit { padding: 8px; font-size: 14px; border: 1px solid #555; border-radius: 4px; background-color: #333; color: #00BFFF; font-weight: bold; }
+            QDialog { background-color: #f8f9fa; color: #333333; }
+            QLabel { color: #333333; font-size: 14px; }
+            QLineEdit { padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background-color: #ffffff; color: #007bff; font-weight: bold; }
             QPushButton { background-color: #0078d4; color: white; padding: 10px; border-radius: 5px; font-weight: bold; }
             QPushButton:hover { background-color: #106ebe; }
         """)
@@ -112,7 +112,7 @@ def check_license():
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("نظام إدارة محل قطع غيار الدراجات - حسين ديب")
+        self.setWindowTitle("نظام إدارة محل قطع غيار الدراجات -العلي")
         self.setGeometry(100, 100, 1200, 800)
         
         # Try to load logo icon
@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
         # ===== Sidebar =====
         sidebar = QWidget()
         sidebar.setFixedWidth(250)
-        sidebar.setStyleSheet("background-color: #252526; border-right: 1px solid #3e3e42;")
+        sidebar.setStyleSheet("background-color: #ffffff; border-right: 1px solid #e0e0e0;")
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(10, 20, 10, 20)
         sidebar_layout.setSpacing(10)
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
                 lbl_logo.setPixmap(pixmap.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
             lbl_logo.setText("Bike Shop")
-            lbl_logo.setStyleSheet("font-size: 24px; font-weight: bold; color: #00BFFF;")
+            lbl_logo.setStyleSheet("font-size: 24px; font-weight: bold; color: #007bff;")
         
         lbl_logo.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(lbl_logo)
@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
 
         # ===== Content Pages =====
         self.pages = QStackedWidget()
-        self.pages.setStyleSheet("background-color: #1e1e1e;") # Softer Dark Background
+        self.pages.setStyleSheet("background-color: #f4f6f9;") # Light Professional Background
         
         self.page_dashboard = DashboardPage()
         self.page_products = ProductsPage()
@@ -214,10 +214,10 @@ if __name__ == "__main__":
     if not check_license():
         sys.exit(0) # User cancelled activation
 
-    # Apply Visual Identity (Softer Professional Dark Theme)
+    # Apply Visual Identity (Professional Light Theme)
     app.setStyleSheet("""
         QWidget {
-            color: #f0f0f0;
+            color: #333333;
             font-family: 'Segoe UI', sans-serif;
             font-size: 14px;
         }
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         /* Sidebar Buttons */
         QPushButton {
             background-color: transparent;
-            color: #f0f0f0;
+            color: #333333;
             border: none;
             text-align: right;
             padding: 10px 20px;
@@ -233,13 +233,13 @@ if __name__ == "__main__":
             border-radius: 5px;
         }
         QPushButton:hover {
-            background-color: #3e3e42;
-            color: #00BFFF;
+            background-color: #e9ecef;
+            color: #007bff;
         }
         QPushButton:checked {
-            background-color: #3e3e42;
-            color: #00BFFF;
-            border-right: 3px solid #00BFFF;
+            background-color: #e9ecef;
+            color: #007bff;
+            border-right: 3px solid #007bff;
         }
         
         /* Action Buttons (Green/Blue/Red in pages) */
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         QPushButton[text="تحديث"], QPushButton[text="بيع وطباعة (F5)"], QPushButton[text="تسديد دين"],
         QPushButton[text="زبون جديد (+)"], QPushButton[text="طباعة / حفظ PDF"] {
             background-color: #0078d4; /* Standard Blue */
-            color: white;
+            color: black;
             text-align: center;
         }
         QPushButton[text="إضافة قطعة"]:hover, QPushButton[text="تعديل"]:hover {
@@ -256,49 +256,49 @@ if __name__ == "__main__":
         
         /* Inputs */
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit {
-            background-color: #2d2d30; /* Input Dark */
-            color: #f0f0f0;
-            border: 1px solid #3e3e42;
+            background-color: #ffffff; /* Input Light */
+            color: #333333;
+            border: 1px solid #ced4da;
             padding: 6px;
             border-radius: 4px;
         }
         QLineEdit:focus, QComboBox:focus {
-            border: 1px solid #00BFFF;
-            background-color: #252526;
+            border: 1px solid #007bff;
+            background-color: #ffffff;
         }
         
         /* Tables */
         QTableWidget {
-            background-color: #252526;
-            alternate-background-color: #2d2d30;
-            color: #f0f0f0;
-            gridline-color: #3e3e42;
-            border: 1px solid #3e3e42;
+            background-color: #ffffff;
+            alternate-background-color: #f8f9fa;
+            color: #333333;
+            gridline-color: #e0e0e0;
+            border: 1px solid #dee2e6;
             selection-background-color: #0078d4;
             selection-color: #ffffff;
         }
         QHeaderView::section {
-            background-color: #2d2d30;
-            color: #f0f0f0;
+            background-color: #e9ecef;
+            color: #333333;
             padding: 8px;
             border: none;
-            border-bottom: 2px solid #3e3e42;
+            border-bottom: 2px solid #dee2e6;
             font-weight: bold;
         }
         
         /* Scrollbars */
         QScrollBar:vertical {
-            background: #1e1e1e;
+            background: #f1f1f1;
             width: 14px;
         }
         QScrollBar::handle:vertical {
-            background: #424242;
+            background: #c1c1c1;
             min-height: 20px;
             border-radius: 7px;
             margin: 2px;
         }
         QScrollBar::handle:vertical:hover {
-            background: #686868;
+            background: #a8a8a8;
         }
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
             height: 0px;

@@ -14,33 +14,15 @@ class InvoicesPage(QWidget):
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(10, 10, 10, 10)
 
-        # ---------- أعلى الشاشة: سعر الصرف والزبون ----------
+        # ---------- أعلى الشاشة: الزبون ----------
         top_frame = QFrame()
-        top_frame.setStyleSheet("background-color: #252526; border-radius: 8px; padding: 5px; border: 1px solid #3e3e42;")
+        top_frame.setStyleSheet("background-color: #f8f9fa; border-radius: 8px; padding: 5px; border: 1px solid #ced4da;")
         top_layout = QHBoxLayout(top_frame)
-
-        # سعر الصرف
-        self.rate_input = QDoubleSpinBox()
-        self.rate_input.setRange(1, 1000000)
-        saved_rate = 15000
-        try:
-            conn = get_db_connection()
-            res = conn.execute("SELECT value FROM settings WHERE key='exchange_rate'").fetchone()
-            if res:
-                saved_rate = float(res[0])
-            conn.close()
-        except:
-            pass
-        self.rate_input.setValue(saved_rate)
-        self.rate_input.setPrefix("سعر الصرف: ")
-        self.rate_input.setFixedHeight(35)
-        self.rate_input.setStyleSheet("font-size: 14px; font-weight: bold; background-color: #2d2d30; color: #00BFFF; border: 1px solid #3e3e42;")
-        self.rate_input.valueChanged.connect(self.update_cart_totals)
 
         # اختيار الزبون
         self.customer_combo = QComboBox()
         self.customer_combo.setFixedHeight(35)
-        self.customer_combo.setStyleSheet("font-size: 14px; background-color: #2d2d30; color: white;")
+        self.customer_combo.setStyleSheet("font-size: 14px; background-color: #ffffff; color: #333333; border: 1px solid #ced4da;")
         self.refresh_customers()
 
         btn_new_customer = QPushButton("زبون جديد (+)")
@@ -48,8 +30,6 @@ class InvoicesPage(QWidget):
         btn_new_customer.setStyleSheet("background-color: #0078d4; color: white; font-weight: bold; border-radius: 5px; padding: 5px;")
         btn_new_customer.clicked.connect(self.add_customer_dialog)
         
-        top_layout.addWidget(self.rate_input)
-        top_layout.addSpacing(20)
         top_layout.addWidget(QLabel("الزبون:"))
         top_layout.addWidget(self.customer_combo, 1)
         top_layout.addWidget(btn_new_customer)
@@ -97,7 +77,7 @@ class InvoicesPage(QWidget):
 
         # إجمالي الفاتورة
         totals_frame = QFrame()
-        totals_frame.setStyleSheet("background-color: #252526; border: 1px solid #3e3e42; border-radius: 5px; padding: 10px;")
+        totals_frame.setStyleSheet("background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 10px;")
         totals_layout = QVBoxLayout(totals_frame)
         self.lbl_total_usd = QLabel("المجموع: $0.00")
         self.lbl_total_syp = QLabel("0")
@@ -146,9 +126,21 @@ class InvoicesPage(QWidget):
         # متغيرات
         self.cart_items = []
         self.all_products = []
+        self.exchange_rate = 15000
+        self.load_exchange_rate()
         self.refresh_products()
         # تحديث فوري لما تفتح الصفحة
         self.refresh_product_data()
+
+    def load_exchange_rate(self):
+        try:
+            conn = get_db_connection()
+            res = conn.execute("SELECT value FROM settings WHERE key='exchange_rate'").fetchone()
+            if res:
+                self.exchange_rate = float(res[0])
+            conn.close()
+        except:
+            pass
 
     # ----------- دوال بسيطة -----------
     def refresh_customers(self):
@@ -185,7 +177,7 @@ class InvoicesPage(QWidget):
         if product['quantity'] <= 0:
             QMessageBox.warning(self, "تنبيه", "المادة نافذة من المخزون!")
             return
-        rate = self.rate_input.value()
+        rate = self.exchange_rate
         unit_usd = product['sell_price'] if product['sell_price'] is not None else 0
         unit_syp = unit_usd * rate
         
@@ -209,28 +201,32 @@ class InvoicesPage(QWidget):
         self.update_cart_totals()
 
     def refresh_product_data(self):
-        """تقرأ أحدث الأسعار والكميات من قاعدة البيانات"""
-        rate = self.rate_input.value()
+        """تقرأ أحدث الكميات وتعيد حساب الأسعار بناءً على سعر الصرف الجديد"""
+        self.load_exchange_rate()
         with get_db_connection() as conn:
             self.all_products = conn.execute("SELECT id, name, quantity, price_usd, sell_price FROM products").fetchall()
             for item in self.cart_items:
                 row = conn.execute("SELECT sell_price, quantity FROM products WHERE id = ?", (item['product_id'],)).fetchone()
                 if row:
                     unit_usd = row['sell_price'] or 0
-                    item['price_syp'] = unit_usd * rate
+                    item['price_syp'] = int(unit_usd * self.exchange_rate)
                     item['max_quantity'] = row['quantity'] or 0
         self.filter_products()
         self.update_cart_totals()
 
     def update_cart_totals(self):
-        rate = self.rate_input.value()
+        rate = self.exchange_rate
         self.cart_table.setRowCount(0)
         total_usd = 0
         total_syp = 0
         
         for row, item in enumerate(self.cart_items):
-            syp_total = item['price_syp'] * item['quantity']
+            p_syp = int(item['price_syp'])
+            qty = item['quantity']
+            
+            syp_total = p_syp * qty
             usd_total = syp_total / rate if rate > 0 else 0
+            
             total_syp += syp_total
             total_usd += usd_total
 
@@ -238,52 +234,21 @@ class InvoicesPage(QWidget):
             self.cart_table.setItem(row, 0, QTableWidgetItem(str(row + 1)))
             self.cart_table.setItem(row, 1, QTableWidgetItem(item['name']))
 
-            # حقل السعر - بدون أزرار زيادة/نقصان
+            # حقل السعر (قابل للتعديل)
             price_edit = QLineEdit()
             price_edit.setAlignment(Qt.AlignCenter)
-            price_edit.setText(f"{int(item['price_syp']):,}")
-            
-            # تنسيق المظهر
-            price_edit.setStyleSheet("""
-                QLineEdit {
-                    background-color: #2d2d30;
-                    color: white;
-                    border: 1px solid #3e3e42;
-                    border-radius: 3px;
-                    padding: 5px;
-                    font-size: 14px;
-                }
-                QLineEdit:focus {
-                    border: 2px solid #0078d4;
-                }
-            """)
-            
-            def validate_input(text, r=row):
-                # السماح بالأرقام والفاصلة فقط
-                cleaned = ''.join(c for c in text if c.isdigit() or c == ',')
-                if cleaned != text:
-                    price_edit.setText(cleaned)
-                
-                # تحويل إلى رقم عند الانتهاء من التعديل
-                if not price_edit.hasFocus():
-                    try:
-                        num_text = cleaned.replace(',', '')
-                        if num_text:
-                            num = int(num_text)
-                            self.update_row_syp_total(r, num)
-                    except:
-                        pass
-            
-            price_edit.textChanged.connect(lambda text, r=row: validate_input(text, r))
-            price_edit.editingFinished.connect(lambda r=row: validate_input(price_edit.text(), r))
-            
+            price_edit.setText(f"{p_syp:,}")
+            price_edit.setStyleSheet("background-color: #ffffff; color: #333333; border: 1px solid #ced4da; font-size: 14px;")
+            # عند الانتهاء من التعديل، نعيد الحساب فقط (بدون إعادة بناء الجدول)
+            price_edit.editingFinished.connect(self.recalc_totals_only)
             self.cart_table.setCellWidget(row, 2, price_edit)
 
-            # عمود العدد
+            # حقل العدد
             qty_spin = QSpinBox()
-            qty_spin.setRange(1, item['max_quantity'])
-            qty_spin.setValue(item['quantity'])
-            qty_spin.valueChanged.connect(lambda val, r=row: self.update_row_quantity(r, val))
+            qty_spin.setRange(1, max(1, item['max_quantity']))
+            qty_spin.setValue(qty)
+            # عند تغيير العدد، نعيد الحساب أيضاً
+            qty_spin.valueChanged.connect(self.recalc_totals_only)
             self.cart_table.setCellWidget(row, 3, qty_spin)
 
             # عمود الإجمالي
@@ -298,30 +263,47 @@ class InvoicesPage(QWidget):
         self.lbl_total_usd.setText(f"المجموع: ${total_usd:,.2f}")
         self.lbl_total_syp.setText(f"{total_syp:,.0f}")
 
-    def update_row_syp_total(self, row, syp_price):
-        """تحديث السعر بالليرة مباشرة"""
-        if 0 <= row < len(self.cart_items):
-            try:
-                price_int = int(syp_price)
-                self.cart_items[row]['price_syp'] = price_int
-                self.recalc_totals_only()
-            except ValueError:
-                pass
-
     def recalc_totals_only(self):
-        rate = self.rate_input.value()
+        """يحسب المجاميع بناءً على القيم الموجودة حالياً في الواجهة (لضمان التطابق التام)"""
+        rate = self.exchange_rate
         total_syp = 0
         total_usd = 0
         
-        for row, item in enumerate(self.cart_items):
-            syp_row = item['price_syp'] * item['quantity']
-            usd_row = syp_row / rate if rate > 0 else 0
-            total_syp += syp_row
-            total_usd += usd_row
+        rows = self.cart_table.rowCount()
+        for row in range(rows):
+            if row >= len(self.cart_items): break
             
-            if row < self.cart_table.rowCount():
-                self.cart_table.setItem(row, 4, QTableWidgetItem(f"{syp_row:,.0f}"))
-        
+            # 1. قراءة السعر من الواجهة
+            price_widget = self.cart_table.cellWidget(row, 2)
+            if price_widget and isinstance(price_widget, QLineEdit):
+                txt = price_widget.text().replace(',', '')
+                try:
+                    price_val = int(txt)
+                except:
+                    price_val = 0
+            else:
+                price_val = self.cart_items[row]['price_syp']
+            
+            # 2. قراءة العدد من الواجهة
+            qty_widget = self.cart_table.cellWidget(row, 3)
+            if qty_widget and isinstance(qty_widget, QSpinBox):
+                qty_val = qty_widget.value()
+            else:
+                qty_val = self.cart_items[row]['quantity']
+            
+            # 3. تحديث البيانات الداخلية
+            self.cart_items[row]['price_syp'] = price_val
+            self.cart_items[row]['quantity'] = qty_val
+            
+            # 4. الحساب وتحديث عمود الإجمالي
+            row_total = price_val * qty_val
+            row_usd = row_total / rate if rate > 0 else 0
+            
+            total_syp += row_total
+            total_usd += row_usd
+            
+            self.cart_table.setItem(row, 4, QTableWidgetItem(f"{row_total:,.0f}"))
+            
         self.lbl_total_usd.setText(f"المجموع: ${total_usd:,.2f}")
         self.lbl_total_syp.setText(f"{total_syp:,.0f}")
 
@@ -353,7 +335,7 @@ class InvoicesPage(QWidget):
         if not self.cart_items:
             QMessageBox.warning(self, "تنبيه", "السلة فارغة!")
             return
-        rate = self.rate_input.value()
+        rate = self.exchange_rate
         subtotal_syp = sum(item['quantity'] * item['price_syp'] for item in self.cart_items)
 
         dialog = QDialog(self)

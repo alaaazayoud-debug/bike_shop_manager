@@ -1,12 +1,35 @@
-echo "__pycache__/
-*.pyc
-*.pyo
-*.pyd
-dist/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
 build/
+dist/
 *.spec
+*.manifest
+
+# Executables & Installers
+*.exe
+*.msi
+*.lic
+
+# SQLite Databases
 *.db
 *.sqlite
-*.exe
-*.lic
-*.log" > .gitignore
+*.sqlite3
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

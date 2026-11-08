@@ -4,7 +4,7 @@
 ; Basic Application Information
 AppName=Bike Shop Manager
 AppVersion=1.0
-AppPublisher=Alaa
+AppPublisher=Alaa Ali Zayood
 DefaultDirName={autopf}\BikeShopManager
 DefaultGroupName=Bike Shop Manager
 ; Output folder for the setup file
@@ -26,6 +26,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 ; The main executable from PyInstaller dist folder
 Source: "dist\BikeShopManager.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "logo.png"; DestDir: "{app}"; Flags: ignoreversion
 ; You can include the database locally if you want a fresh empty one, 
 ; but typically the app creates it if missing. 
 ; To include a ready-made DB, uncomment the next line:

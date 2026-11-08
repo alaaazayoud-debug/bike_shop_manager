@@ -290,9 +290,16 @@ class ProductsPage(QWidget):
                 return
             
             conn = None
+            conn = None
             try:
                 conn = get_db_connection()
                 cursor = conn.cursor()
+                
+                # Fetch Profit Margin
+                cur_s = conn.execute("SELECT value FROM settings WHERE key='profit_margin'")
+                res_s = cur_s.fetchone()
+                margin_percent = float(res_s[0]) if res_s else 0
+                multiplier = 1 + (margin_percent / 100.0)
                 
                 added_count = 0
                 updated_count = 0
@@ -304,10 +311,11 @@ class ProductsPage(QWidget):
                         if pd.isna(name) or not name: continue
                         
                         price_usd = float(row['سعر الشراء ($)']) if not pd.isna(row['سعر الشراء ($)']) else 0
-                        sell_price = float(row.get('سعر المبيع ($)', 0)) if not pd.isna(row.get('سعر المبيع ($)', 0)) else 0
-                        quantity = int(row.get('الكمية', 0)) if not pd.isna(row.get('الكمية', 0)) else 0
                         
-                        # Code handling removed - always None
+                        # Calculate Sell Price based on Margin
+                        sell_price = price_usd * multiplier
+                        
+                        quantity = int(row.get('الكمية', 0)) if not pd.isna(row.get('الكمية', 0)) else 0
                         
                         # Check if exists by Name only
                         cursor.execute("SELECT id FROM products WHERE name = ?", (name,))

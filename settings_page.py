@@ -14,16 +14,16 @@ class SettingsPage(QWidget):
         
         # Header
         title = QLabel("الإعدادات العامة")
-        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #00BFFF; margin-bottom: 10px;")
+        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #007bff; margin-bottom: 10px;")
         self.layout.addWidget(title)
         
         # --- Currency Settings ---
         currency_group = QGroupBox("إعدادات العملة")
-        currency_group.setStyleSheet("QGroupBox { border: 1px solid #3e3e42; border-radius: 5px; margin-top: 20px; font-size: 16px; color: white; padding: 15px; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }")
+        currency_group.setStyleSheet("QGroupBox { border: 1px solid #ced4da; border-radius: 5px; margin-top: 20px; font-size: 16px; color: #333333; padding: 15px; background-color: #f8f9fa; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }")
         curr_layout = QVBoxLayout(currency_group)
         
         lbl_rate = QLabel("سعر صرف الدولار الحالي:")
-        lbl_rate.setStyleSheet("font-size: 14px; color: #ccc;")
+        lbl_rate.setStyleSheet("font-size: 14px; color: #666;")
         
         self.rate_input = QDoubleSpinBox()
         self.rate_input.setRange(1, 1000000)
@@ -43,11 +43,11 @@ class SettingsPage(QWidget):
         
         # --- Pricing Settings ---
         pricing_group = QGroupBox("إعدادات التسعير والمخزون")
-        pricing_group.setStyleSheet("QGroupBox { border: 1px solid #3e3e42; border-radius: 5px; margin-top: 20px; font-size: 16px; color: white; padding: 15px; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }")
+        pricing_group.setStyleSheet("QGroupBox { border: 1px solid #ced4da; border-radius: 5px; margin-top: 20px; font-size: 16px; color: #333333; padding: 15px; background-color: #f8f9fa; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }")
         price_layout = QVBoxLayout(pricing_group)
         
         lbl_margin = QLabel("نسبة الربح الافتراضية (%):")
-        lbl_margin.setStyleSheet("font-size: 14px; color: #ccc;")
+        lbl_margin.setStyleSheet("font-size: 14px; color: #666;")
         
         self.margin_input = QDoubleSpinBox()
         self.margin_input.setRange(0, 500)

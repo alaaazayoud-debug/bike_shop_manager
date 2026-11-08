@@ -14,7 +14,7 @@ class DashboardPage(QWidget):
         # Header
         header_layout = QHBoxLayout()
         title = QLabel("لوحة التحكم")
-        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #00BFFF;")
+        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #007bff;")
         header_layout.addWidget(title)
         
         btn_refresh = QPushButton("🔄 تحديث")
